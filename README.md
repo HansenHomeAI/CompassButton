@@ -6,7 +6,8 @@ A web application project.
 
 This repository contains the main application files:
 - `index.html` - Main HTML file
-- `index.js` - Main JavaScript file
+- `shell.html` - Reference HTML file for shell components
+- `core.html` - Reference HTML file for core components
 
 ## Setup
 
