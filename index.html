@@ -488,16 +488,19 @@
             opacity: 1;
         }
 
-        /* Compass triangle in parent menu */
-        #compassTriangle {
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 16px solid white;
-            transform-origin: center bottom;
-            transition: transform 0.1s ease-out;
+        /* Compass icon in parent menu */
+        #compassIcon {
+            width: 21px;
+            height: 21px;
             position: relative;
+            z-index: 1;
+            transform-origin: center center; /* Center rotation point */
+            /* No transition on transform to allow real-time rotation */
+            pointer-events: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
@@ -520,7 +523,7 @@
             <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg" alt="Details" draggable="false">
         </div>
         <div id="compassButton" class="menu-button">
-            <div id="compassTriangle"></div>
+            <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
         </div>
     </div>
 
@@ -1233,7 +1236,7 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
         : 0;
     let autoRotate = parameters.animation.autoRotate;
 
-    // Function to calculate compass arrow rotation
+    // Enhanced compass logic with icon switching
     function getCompassRotation() {
         const target = controls.target;
         const cameraPos = camera.position;
@@ -1250,6 +1253,59 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
         let arrowRotation = (parameters.compass.northDirection - cameraBearing + 360) % 360;
         
         return arrowRotation;
+    }
+
+    function updateCompassIcon() {
+        if (!compassIcon) return;
+        
+        const target = controls.target;
+        const cameraPos = camera.position;
+        
+        // Calculate the angle from target to camera (in XZ plane)
+        const deltaX = cameraPos.x - target.x;
+        const deltaZ = cameraPos.z - target.z;
+        
+        // Get camera bearing in degrees (where camera is looking FROM)
+        let cameraBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
+        
+        // Calculate how much to rotate the icon so it points to north
+        let iconRotation = (parameters.compass.northDirection - cameraBearing + 360) % 360;
+        
+        // Check if camera is pointing at north (difference between camera bearing and north direction)
+        let bearingDifference = Math.abs(cameraBearing - parameters.compass.northDirection);
+        if (bearingDifference > 180) {
+            bearingDifference = 360 - bearingDifference; // Handle wrapping around 360°
+        }
+        
+        const tolerance = 15; // Degrees tolerance for "pointing at north"
+        const isPointingAtNorth = bearingDifference <= tolerance;
+        
+        // Debug logging
+        console.log('Camera Bearing:', cameraBearing.toFixed(1), 
+                   'North Direction:', parameters.compass.northDirection, 
+                   'Bearing Diff:', bearingDifference.toFixed(1), 
+                   'Pointing at North:', isPointingAtNorth,
+                   'Icon Rotation:', iconRotation.toFixed(1));
+        
+        // Icon URLs
+        const outlineIcon = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg';
+        const filledIcon = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthFilled.svg';
+        
+        // Determine target icon: filled when pointing at north, outline otherwise
+        const targetSrc = isPointingAtNorth ? filledIcon : outlineIcon;
+        const currentSrc = compassIcon.src;
+        
+        // Switch icon if needed (check filename instead of full URL)
+        const currentFilename = currentSrc.split('/').pop();
+        const targetFilename = targetSrc.split('/').pop();
+        
+        if (currentFilename !== targetFilename) {
+            console.log('Switching from', currentFilename, 'to', targetFilename);
+            compassIcon.src = targetSrc; // Direct switch for now, no animation
+        }
+        
+        // Apply rotation - icon rotates to always point north
+        compassIcon.style.transform = `rotate(${iconRotation}deg)`;
     }
 
     function animate() {
@@ -1282,11 +1338,8 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
             tapDot.iconMesh.position.copy(tapDot.dot.position).add(direction.multiplyScalar(offsetDistance));
         });
 
-        // Update compass triangle rotation to point north
-        if (compassTriangle) {
-            const rotation = getCompassRotation();
-            compassTriangle.style.transform = `rotate(${rotation}deg)`;
-        }
+        // Update compass icon with smart switching and center rotation
+        updateCompassIcon();
 
         controls.update();
         renderer.render(scene, camera);
@@ -1354,7 +1407,7 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
     const detailsButton = document.getElementById('detailsButton');
     const fullscreenButton = document.getElementById('fullscreenButton');
     const compassButton = document.getElementById('compassButton');
-    const compassTriangle = document.getElementById('compassTriangle');
+    const compassIcon = document.getElementById('compassIcon');
     const detailsBox = document.getElementById('detailsBox');
     const overlayUI = document.getElementById('overlay-ui');
     const detailsContent = document.getElementById('detailsContent');
