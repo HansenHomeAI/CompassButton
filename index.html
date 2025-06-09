@@ -413,6 +413,92 @@
             width: 8px; /* or whatever width you like for native scrollbar on iOS/Android */
             height: 8px;
         }
+
+        /* Fullscreen button moved to details box upper right */
+        .details-fullscreen-button {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 45px;
+            height: 45px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 23.5px;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 11;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .details-fullscreen-button img {
+            width: 21px;
+            height: 21px;
+            position: relative;
+            z-index: 1;
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            pointer-events: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Hover effects for fullscreen button in details box */
+        @media (hover:hover) {
+            .details-fullscreen-button:hover::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.15);
+                -webkit-transform: scale(1);
+                transform: scale(1);
+                -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                opacity: 1;
+                z-index: 0;
+            }
+        }
+
+        .details-fullscreen-button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 0;
+            z-index: 0;
+            -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .details-fullscreen-button.active::before {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Compass triangle in parent menu */
+        #compassTriangle {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 16px solid white;
+            transform-origin: center bottom;
+            transition: transform 0.1s ease-out;
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -433,12 +519,16 @@
         <div id="detailsButton" class="menu-button">
             <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg" alt="Details" draggable="false">
         </div>
-        <div id="fullscreenButton" class="menu-button">
-            <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/FullScreenIconDefault.svg" alt="Fullscreen" draggable="false">
+        <div id="compassButton" class="menu-button">
+            <div id="compassTriangle"></div>
         </div>
     </div>
 
     <div id="detailsBox" class="details-box">
+        <!-- Fullscreen button moved to upper right corner of details box -->
+        <div id="fullscreenButton" class="details-fullscreen-button">
+            <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/FullScreenIconDefault.svg" alt="Fullscreen" draggable="false">
+        </div>
         <div class="details-content" id="detailsContent">
             <div class="details-inner" id="detailsInner">
                 <h1>Hart Bench Ranch</h1>
@@ -1192,12 +1282,11 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
             tapDot.iconMesh.position.copy(tapDot.dot.position).add(direction.multiplyScalar(offsetDistance));
         });
 
-        // Compass logic temporarily disabled - will be used later for UI functionality
-        // const compassArrow = document.getElementById('compassArrow');
-        // if (compassArrow) {
-        //     const rotation = getCompassRotation();
-        //     compassArrow.style.transform = `rotate(${rotation}deg)`;
-        // }
+        // Update compass triangle rotation to point north
+        if (compassTriangle) {
+            const rotation = getCompassRotation();
+            compassTriangle.style.transform = `rotate(${rotation}deg)`;
+        }
 
         controls.update();
         renderer.render(scene, camera);
@@ -1264,6 +1353,8 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
     
     const detailsButton = document.getElementById('detailsButton');
     const fullscreenButton = document.getElementById('fullscreenButton');
+    const compassButton = document.getElementById('compassButton');
+    const compassTriangle = document.getElementById('compassTriangle');
     const detailsBox = document.getElementById('detailsBox');
     const overlayUI = document.getElementById('overlay-ui');
     const detailsContent = document.getElementById('detailsContent');
@@ -1577,6 +1668,21 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
             btn.classList.remove('active');
         }, {passive: true});
     });
+
+    // Handle hover circle for fullscreen button in details box
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('touchstart', () => {
+            fullscreenButton.classList.add('active');
+        }, {passive: true});
+
+        fullscreenButton.addEventListener('touchend', () => {
+            fullscreenButton.classList.remove('active');
+        }, {passive: true});
+
+        fullscreenButton.addEventListener('touchcancel', () => {
+            fullscreenButton.classList.remove('active');
+        }, {passive: true});
+    }
 
     // Apply layout mode on load and on resize
     window.addEventListener('resize', applyLayoutMode);
