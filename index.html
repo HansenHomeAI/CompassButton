@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>CMA</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Fonts from original Shell.html -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Helvetica+Neue&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -13,6 +15,11 @@
             touch-action: none; /* Disable default touch behaviors */
             user-select: none; /* Disable text selection */
             -webkit-user-select: none; /* Safari specific styling */
+        }
+
+        /* Hart Bench Ranch UI Font Override */
+        .menu-container, .details-box, .details-content, .details-inner {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
         #vignette {
             position: absolute;
@@ -130,6 +137,9 @@
             backdrop-filter: blur(50px);
             -webkit-transform-origin: left bottom;
             transform-origin: left bottom; /* Will use this when scaling */
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
         }
 
         .menu-container::before {
@@ -163,6 +173,9 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
         }
 
         .menu-button img {
