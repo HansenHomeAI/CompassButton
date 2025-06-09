@@ -35,11 +35,29 @@
             margin-right: 10px;
             padding: 10px;
         }
+        
+        /* Simple Menu Button */
+        #menuButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 9999;
+            transition: background-color 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <div id="vignette"></div>
     <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; color: white; font-size: 24px; font-family: Arial, sans-serif;">Lot #1</div>
+
+    <button id="menuButton">⋯</button>
 
     <!-- Developer mode controls -->
     <div id="developerControls">
@@ -712,6 +730,38 @@
         : 0;
     let autoRotate = parameters.animation.autoRotate;
 
+    // Function to get direction color based on camera angle relative to target
+    function getDirectionColor() {
+        const target = controls.target;
+        const cameraPos = camera.position;
+        
+        // Calculate the angle from target to camera (in XZ plane)
+        const deltaX = cameraPos.x - target.x;
+        const deltaZ = cameraPos.z - target.z;
+        
+        // Get angle in radians, then convert to degrees (0-360)
+        let angleDeg = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
+        
+        // Map angles to colors (8 directions)
+        if (angleDeg >= 337.5 || angleDeg < 22.5) {
+            return '#4A90E2'; // North - Blue
+        } else if (angleDeg >= 22.5 && angleDeg < 67.5) {
+            return '#7B68EE'; // Northeast - Purple
+        } else if (angleDeg >= 67.5 && angleDeg < 112.5) {
+            return '#50E3C2'; // East - Cyan
+        } else if (angleDeg >= 112.5 && angleDeg < 157.5) {
+            return '#7ED321'; // Southeast - Green
+        } else if (angleDeg >= 157.5 && angleDeg < 202.5) {
+            return '#F5A623'; // South - Orange
+        } else if (angleDeg >= 202.5 && angleDeg < 247.5) {
+            return '#D0021B'; // Southwest - Red
+        } else if (angleDeg >= 247.5 && angleDeg < 292.5) {
+            return '#9013FE'; // West - Magenta
+        } else {
+            return '#BD10E0'; // Northwest - Pink
+        }
+    }
+
     function animate() {
         if (autoRotate) {
         angle += parameters.animation.speed;
@@ -741,6 +791,12 @@
             let offsetDistance = tapDotRadius + 0.02;
             tapDot.iconMesh.position.copy(tapDot.dot.position).add(direction.multiplyScalar(offsetDistance));
         });
+
+        // Update menu button color based on camera direction
+        const menuButton = document.getElementById('menuButton');
+        if (menuButton) {
+            menuButton.style.backgroundColor = getDirectionColor();
+        }
 
         controls.update();
         renderer.render(scene, camera);
