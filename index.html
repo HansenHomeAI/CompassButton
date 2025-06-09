@@ -1268,8 +1268,9 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
         // Get camera bearing in degrees (where camera is looking FROM)
         let cameraBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
         
-        // Calculate how much to rotate the icon so it points to north
-        let iconRotation = (parameters.compass.northDirection - cameraBearing + 360) % 360;
+        // FIXED: Compass should rotate to always point toward north relative to camera view
+        // Try inverted rotation direction to fix the east/west issue
+        let iconRotation = (cameraBearing - parameters.compass.northDirection + 360) % 360;
         
         // Check if camera is pointing at north (difference between camera bearing and north direction)
         let bearingDifference = Math.abs(cameraBearing - parameters.compass.northDirection);
@@ -1304,7 +1305,7 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
             compassIcon.src = targetSrc; // Direct switch for now, no animation
         }
         
-        // Apply rotation - icon rotates to always point north
+        // Apply rotation - compass always points to north (77° in your case)
         compassIcon.style.transform = `rotate(${iconRotation}deg)`;
     }
 
