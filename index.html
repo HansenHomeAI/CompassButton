@@ -1308,6 +1308,61 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
         compassIcon.style.transform = `rotate(${iconRotation}deg)`;
     }
 
+    // Smooth camera animation to face north
+    function animateCameraToNorth() {
+        if (isAnimatingToNorth) return; // Prevent multiple animations
+        
+        // Calculate target camera position to face north
+        const target = controls.target;
+        const currentRadius = camera.position.distanceTo(target);
+        
+        // Convert north direction to radians
+        const northRadians = MathUtils.degToRad(parameters.compass.northDirection);
+        
+        // Calculate target position (camera looking toward north)
+        targetCameraPosition.set(
+            target.x + Math.sin(northRadians) * currentRadius,
+            camera.position.y, // Keep same height
+            target.z + Math.cos(northRadians) * currentRadius
+        );
+        
+        // Store starting position
+        startCameraPosition.copy(camera.position);
+        
+        // Start animation
+        isAnimatingToNorth = true;
+        animationStartTime = performance.now();
+        autoRotate = false; // Disable auto-rotation during animation
+        
+        console.log('Animating camera to north. Target position:', targetCameraPosition);
+    }
+
+    // Smooth easing function (ease-out cubic)
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    // Update camera animation in the main animation loop
+    function updateCameraAnimation() {
+        if (!isAnimatingToNorth) return;
+        
+        const elapsed = performance.now() - animationStartTime;
+        const progress = Math.min(elapsed / animationDuration, 1);
+        const easedProgress = easeOutCubic(progress);
+        
+        // Interpolate camera position
+        camera.position.lerpVectors(startCameraPosition, targetCameraPosition, easedProgress);
+        
+        // Update controls target to maintain smooth interaction
+        camera.lookAt(controls.target);
+        
+        // Animation complete
+        if (progress >= 1) {
+            isAnimatingToNorth = false;
+            console.log('Camera animation to north complete');
+        }
+    }
+
     function animate() {
         if (autoRotate) {
         angle += parameters.animation.speed;
@@ -1340,6 +1395,9 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
 
         // Update compass icon with smart switching and center rotation
         updateCompassIcon();
+
+        // Update camera animation if active
+        updateCameraAnimation();
 
         controls.update();
         renderer.render(scene, camera);
@@ -1421,6 +1479,13 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
     let dragStartY = 0;
     let startScrollTop = 0;
     let scrollbarFadeTimeout;
+    
+    // Camera animation variables
+    let isAnimatingToNorth = false;
+    let animationStartTime = 0;
+    let startCameraPosition = new Vector3();
+    let targetCameraPosition = new Vector3();
+    const animationDuration = 1500; // 1.5 seconds
 
     // Original base spacing and sizes:
     const baseMenuLeft = 20;
@@ -1572,6 +1637,12 @@ Hart Bench Ranch provides a rare opportunity to own a complete yet manageable op
             animateIconChange(img, 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/Close2IconDefault.svg');
             openDetails();
         }
+    });
+
+    // Add click listener for compass button
+    compassButton.addEventListener('mouseup', () => {
+        console.log('Compass clicked - animating to north');
+        animateCameraToNorth();
     });
 
     fullscreenButton.addEventListener('mouseup', async () => {
